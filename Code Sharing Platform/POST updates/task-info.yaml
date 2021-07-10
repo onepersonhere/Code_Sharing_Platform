@@ -285,10 +285,13 @@ files:
 - name: src/resources/templates/code.html
   visible: true
   learner_created: true
-- name: src/platform/entity/Platform.java
+- name: src/platform/ApiCode.java
   visible: true
   learner_created: true
-- name: src/platform/ApiCode.java
+- name: src/resources/templates/newCode.html
+  visible: true
+  learner_created: true
+- name: src/resources/templates/send.js
   visible: true
   learner_created: true
 feedback_link: https://hyperskill.org/projects/130/stages/693/implement#comment
