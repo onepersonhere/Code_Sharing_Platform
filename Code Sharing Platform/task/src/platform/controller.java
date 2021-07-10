@@ -1,43 +1,31 @@
 package platform;
 
-import jdk.jfr.ContentType;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
-@RestController
+@Controller
 public class controller {
     static String code = "public static void main(String[] args) {\n    SpringApplication.run(CodeSharingPlatform.class, args);\n}";
 
-    @GetMapping("/code")
+    @GetMapping(value = "/code", produces = "text/html")
     public String returnCode(){
-        String str = "<html>\n" +
-                "<head>\n" +
-                "    <title>Code</title>\n" +
-                "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />" +
-                "</head>\n" +
-                "<body>\n" +
-                "<pre id=\"code_snippet\">\n" +
-                code +"\n" +
-                "</pre>\n" +
-                "</body>\n" +
-                "</html>";
-        return str;
+        return "code";
     }
 
-    @GetMapping("/api/code")
-    public String returnJson(){
+    @GetMapping(value = "/api/code",produces = "application/json")
+    @ResponseBody
+    public ApiCode returnJson(){
+        return new ApiCode(code, getTime());
+    }
+
+    private String getTime(){
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
         String date = dtf.format(now);
-        String jsonStr = "{\n" +
-                "    \"code\": \""+code+"\"\n" +
-                "    \"date\": \""+date+"\"\n" +
-                "}";
-        //https://www.baeldung.com/spring-boot-json
-        return jsonStr;
+        return date;
     }
 }

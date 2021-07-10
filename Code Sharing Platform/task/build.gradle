@@ -16,5 +16,8 @@ sourceSets.main.resources.srcDirs = ["src/resources"]
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.projectlombok:lombok:1.18.18'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
     compile("org.springframework.boot:spring-boot-starter-web")
 }
