@@ -3,7 +3,7 @@ hyperskill_project:
   ide_files: https://stepik.org/media/attachments/lesson/405256/additional_files.json
   is_template_based: false
   use_ide: true
-update_date: Sat, 10 Jul 2021 23:32:41 UTC
+update_date: Sun, 11 Jul 2021 04:32:54 UTC
 stages:
 - id: 692
   step: 11027
@@ -182,60 +182,6 @@ topics:
     theory_id: 7917
   - title: Dependency management
     theory_id: 5076
-  - title: Reducing boilerplate code with Lombok
-    theory_id: 13983
-  - title: Introduction to generic programming
-    theory_id: 3492
-  - title: Generics and Object
-    theory_id: 3493
-  - title: What are collections
-    theory_id: 3770
-  - title: ArrayList
-    theory_id: 3567
-  - title: The Collections Framework overview
-    theory_id: 3624
-  - title: The List interface
-    theory_id: 3581
-  - title: Defining classes
-    theory_id: 3618
-  - title: Constructor
-    theory_id: 3535
-  - title: Instance methods
-    theory_id: 3495
-  - title: Multiple constructors
-    theory_id: 3538
-  - title: Package
-    theory_id: 3621
-  - title: Access modifiers
-    theory_id: 3589
-  - title: Getters and setters
-    theory_id: 3599
-  - title: Inheritance
-    theory_id: 3583
-  - title: The keyword super
-    theory_id: 3588
-  - title: Protected modifier
-    theory_id: 6692
-  - title: Referencing subclass objects
-    theory_id: 3585
-  - title: The Object class
-    theory_id: 3596
-  - title: Annotations basics
-    theory_id: 3622
-  - title: Objects
-    theory_id: 4727
-  - title: Static members
-    theory_id: 3534
-  - title: Hiding and overriding
-    theory_id: 3572
-  - title: Polymorphism
-    theory_id: 3587
-  - title: toString()
-    theory_id: 3584
-  - title: Interface
-    theory_id: 3615
-  - title: Boxing and unboxing
-    theory_id: 3595
   1:
   - title: Block-level elements
     theory_id: 7271
