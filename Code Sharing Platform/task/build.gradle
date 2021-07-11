@@ -19,6 +19,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.projectlombok:lombok:1.18.18'
     implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'org.springframework.boot:spring-boot-starter-freemarker'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     compile("org.springframework.boot:spring-boot-starter-web")
 }

@@ -413,6 +413,158 @@ files:
         }
     }
   learner_created: false
+- name: src/platform/controller.java
+  visible: true
+  text: |
+    package platform;
+
+    import com.google.gson.JsonElement;
+    import com.google.gson.JsonObject;
+    import com.google.gson.JsonParser;
+    import org.springframework.stereotype.Controller;
+    import org.springframework.web.bind.annotation.*;
+
+    import java.time.LocalDateTime;
+    import java.time.format.DateTimeFormatter;
+    import org.springframework.ui.Model;
+
+    @Controller
+    public class controller {
+        static String code = "public static void main(String[] args) {\n    SpringApplication.run(CodeSharingPlatform.class, args);\n}";
+
+        @GetMapping(value = "/code", produces = "text/html")
+        public String returnCode(Model model){
+            model.addAttribute("code", controller.code);
+            model.addAttribute("date", getTime());
+            return "code";
+        }
+
+        @GetMapping(value = "/code/new", produces = "text/html")
+        public String newCode(){
+            return "newCode";
+        }
+
+        @GetMapping(value = "/api/code",produces = "application/json")
+        @ResponseBody
+        public ApiCode returnJson(){
+            return new ApiCode(code, getTime());
+        }
+
+        @PostMapping(value = "/api/code/new", produces = "application/json")
+        @ResponseBody
+        public String updateSnippet(@RequestBody String code){
+            controller.code = parseJson(code); //parse Json using Gson here!!!!!
+            return "{}";
+        }
+
+        private String getTime(){
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+            LocalDateTime now = LocalDateTime.now();
+            String date = dtf.format(now);
+            return date;
+        }
+
+        private String parseJson(String Json){
+            JsonObject jObj = new JsonParser().parse(Json).getAsJsonObject();
+            return jObj.get("code").getAsString();
+        }
+    }
+  learner_created: true
+- name: src/resources/templates/send.js
+  visible: true
+  text: |-
+    function send() {
+        let object = {
+            "code": document.getElementById("code_snippet").value
+        };
+
+        let json = JSON.stringify(object);
+
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", '/api/code/new', false)
+        xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+        xhr.send(json);
+
+        if (xhr.status === 200) {
+            alert("Success!");
+        }
+    }
+  learner_created: true
+- name: src/platform/ApiCode.java
+  visible: true
+  text: |
+    package platform;
+
+    import lombok.AllArgsConstructor;
+    import lombok.Getter;
+    import lombok.Setter;
+
+    public class ApiCode {
+        private String code;
+        private String date;
+        public ApiCode(String code, String date){
+            this.code = code;
+            this.date = date;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public void setDate(String date) {
+            this.date = date;
+        }
+    }
+  learner_created: true
+- name: src/resources/templates/code.html
+  visible: true
+  text: |-
+    <!DOCTYPE html>
+    <html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Code</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    </head>
+    <body>
+        <span id="load_date"
+              style="color: rgb(187,62,207);"
+              th:text="${date}"/>
+        <div class="container" style="background: rgb(195,195,195); height: 230px;width: 850px";>
+            <pre id="code_snippet" th:text="${code}"/>
+        </div>
+    </body>
+    </html>
+  learner_created: true
+- name: src/resources/templates/newCode.html
+  visible: true
+  text: |-
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Create</title>
+    </head>
+    <body>
+        <label for="code_snippet"></label>
+        <textarea id="code_snippet"
+                  style="background: rgb(195,195,195);
+                  height: 230px;width: 850px">// write your code here</textarea>
+        <button id="send_snippet"
+                type="submit"
+                onclick="send()">
+            Submit
+        </button>
+    </body>
+    </html>
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/130/stages/694/implement#comment
 status: Unchecked
 record: -1
