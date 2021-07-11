@@ -4,14 +4,21 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
 //not using lombok cause of test
+@Entity(name = "Code")
+@Table
 public class Code {
+    @Column
     private String code;
+    @Column
     private String date;
-    public Code(String code, String date){
-        this.code = code;
-        this.date = date;
-    }
+    @Id
+    private int id;
 
     public String getCode() {
         return code;
@@ -27,5 +34,13 @@ public class Code {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
     }
 }

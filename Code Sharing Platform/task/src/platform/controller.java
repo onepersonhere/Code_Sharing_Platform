@@ -3,6 +3,7 @@ package platform;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,11 +16,20 @@ import org.springframework.ui.Model;
 
 @Controller
 public class controller {
-    static List<Code> codeList = new ArrayList<>(); //stores code snippets in memory
-    static int i = 0;
+    @Autowired
+    CodeService codeService;
+
+    List<Code> codeList = new ArrayList<>(); //stores code snippets in memory
+    int i = 0;
+
+    public void Import(){
+        codeList = codeService.getAllCode();
+        i = codeList.get(codeList.size() - 1).getId();
+    }
 
     @GetMapping(value = "/code/{i}", produces = "text/html")
     public String getCode(@PathVariable int i, Model model){
+        Import();
         model.addAttribute("code", codeList.get(i-1).getCode());
         model.addAttribute("date", codeList.get(i-1).getDate()); //setTime ... nahh
         return "code";
@@ -28,24 +38,33 @@ public class controller {
     @GetMapping(value = "/api/code/{i}",produces = "application/json")
     @ResponseBody
     public Code getCodeJson(@PathVariable int i){
+        Import();
         return codeList.get(i-1);
     }
 
     @GetMapping(value = "/code/new", produces = "text/html")//same
     public String newCode(){
+        Import();
         return "newCode";
     }
 
     @PostMapping(value = "/api/code/new", produces = "application/json")
     @ResponseBody
     public String newSnippet(@RequestBody String code){
+        Import();
         i++;
-        codeList.add(new Code(parseJson(code), getTime())); //add Json to latest
+        Code cde = new Code();
+        cde.setCode(parseJson(code));
+        cde.setDate(getTime());
+        cde.setId(i);
+        codeList.add(cde);
+        codeService.saveNewCode(cde);
         return "{ \"id\" : \""+i+"\" }";
     }
 
     @GetMapping(value = "/code/latest", produces = "text/html")
     public String latestHTML(Model model){
+        Import();
         model.addAttribute("Codes", getRecentArr());
         return "recent";
     }
@@ -53,6 +72,7 @@ public class controller {
     @GetMapping(value = "/api/code/latest", produces = "application/json")
     @ResponseBody
     public String latestJson(){
+        Import();
         return recentArrToJson(); //assume the latest time is the time of upload & not the time of access
     }
 
