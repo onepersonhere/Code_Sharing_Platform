@@ -3,13 +3,19 @@
 <head>
     <title>Code</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet"
+          target="_blank" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/styles/default.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.2.1/build/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
 </head>
 <body>
     <span id="load_date"
           style="color: rgb(187,62,207);"
           th:text="${date}"/>
     <div class="container" style="background: rgb(195,195,195);border-style: solid";>
-        <pre id="code_snippet" th:text="${code}"/>
+        <pre id="code_snippet" >
+            <code th:text="${code}"/>
+        </pre>
     </div>
 </body>
 </html>

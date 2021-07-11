@@ -13,7 +13,6 @@ import java.util.List;
 
 import org.springframework.ui.Model;
 
-//reminder: change from thymeleaf to freemarker?
 @Controller
 public class controller {
     static List<Code> codeList = new ArrayList<>(); //stores code snippets in memory
