@@ -5,10 +5,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 //not using lombok cause of test
-public class ApiCode {
+public class Code {
     private String code;
     private String date;
-    public ApiCode(String code, String date){
+    public Code(String code, String date){
         this.code = code;
         this.date = date;
     }

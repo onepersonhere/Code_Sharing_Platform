@@ -490,40 +490,6 @@ files:
         }
     }
   learner_created: true
-- name: src/platform/ApiCode.java
-  visible: true
-  text: |
-    package platform;
-
-    import lombok.AllArgsConstructor;
-    import lombok.Getter;
-    import lombok.Setter;
-
-    public class ApiCode {
-        private String code;
-        private String date;
-        public ApiCode(String code, String date){
-            this.code = code;
-            this.date = date;
-        }
-
-        public String getCode() {
-            return code;
-        }
-
-        public void setCode(String code) {
-            this.code = code;
-        }
-
-        public String getDate() {
-            return date;
-        }
-
-        public void setDate(String date) {
-            this.date = date;
-        }
-    }
-  learner_created: true
 - name: src/resources/templates/code.html
   visible: true
   text: |-
@@ -564,6 +530,40 @@ files:
         </button>
     </body>
     </html>
+  learner_created: true
+- name: src/platform/Code.java
+  visible: true
+  text: |
+    package platform;
+
+    import lombok.AllArgsConstructor;
+    import lombok.Getter;
+    import lombok.Setter;
+
+    public class ApiCode {
+        private String code;
+        private String date;
+        public ApiCode(String code, String date){
+            this.code = code;
+            this.date = date;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public void setDate(String date) {
+            this.date = date;
+        }
+    }
   learner_created: true
 feedback_link: https://hyperskill.org/projects/130/stages/694/implement#comment
 status: Unchecked

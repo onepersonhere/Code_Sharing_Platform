@@ -13,17 +13,16 @@ import java.util.List;
 
 import org.springframework.ui.Model;
 
-//reminder: create a class called code to add code and time tgt
+//reminder: change from thymeleaf to freemarker?
 @Controller
 public class controller {
-    static List<String> code = new ArrayList<>();
-    static List<ApiCode> recent = new ArrayList<>();
+    static List<Code> codeList = new ArrayList<>(); //stores code snippets in memory
     static int i = 0;
 
     @GetMapping(value = "/code/{i}", produces = "text/html")
-    public String returnCode(@PathVariable int i, Model model){
-        model.addAttribute("code", code.get(i-1));
-        model.addAttribute("date", getTime());
+    public String getCode(@PathVariable int i, Model model){
+        model.addAttribute("code", codeList.get(i-1).getCode());
+        model.addAttribute("date", codeList.get(i-1).getDate()); //setTime ... nahh
         return "code";
     }
 
@@ -39,22 +38,21 @@ public class controller {
 
     @GetMapping(value = "/api/code/{i}",produces = "application/json")
     @ResponseBody
-    public ApiCode returnJson(@PathVariable int i){
-        return new ApiCode(code.get(i-1), getTime());
+    public Code getCodeJson(@PathVariable int i){
+        return codeList.get(i-1);
     }
 
     @PostMapping(value = "/api/code/new", produces = "application/json")
     @ResponseBody
     public String updateSnippet(@RequestBody String code){
         i++;
-        controller.code.add(parseJson(code)); //add Json to latest
-        recent.add(new ApiCode(parseJson(code), getTime()));
+        codeList.add(new Code(parseJson(code), getTime())); //add Json to latest
         return "{ \"id\" : \""+i+"\" }";
     }
 
     @GetMapping(value = "/api/code/latest", produces = "application/json")
     @ResponseBody
-    public String apiLatest(){
+    public String latestJson(){
         return recentArrToJson(); //assume the latest time is the time of upload & not the time of access
     }
 
@@ -71,12 +69,12 @@ public class controller {
     }
 
     private String recentArrToJson(){
-        List<ApiCode> newList = new ArrayList<>();
+        List<Code> newList = new ArrayList<>();
 
         int j = 1; //only getting 10 of the latest
         for(int i = 0; i < 10; i++){
-            if(j > recent.size()) break;
-            newList.add(recent.get(recent.size()-j));
+            if(j > codeList.size()) break;
+            newList.add(codeList.get(codeList.size()-j));
             j++;
         }
 
