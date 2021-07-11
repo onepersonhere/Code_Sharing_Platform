@@ -24,7 +24,10 @@ public class controller {
 
     public void Import(){
         codeList = codeService.getAllCode();
-        i = codeList.get(codeList.size() - 1).getId();
+        try{i = codeList.get(codeList.size() - 1).getId();}
+        catch (IndexOutOfBoundsException e){
+            i = 0;
+        }
     }
 
     @GetMapping(value = "/code/{i}", produces = "text/html")
