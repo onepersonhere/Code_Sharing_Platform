@@ -467,6 +467,223 @@ files:
         }
     }
   learner_created: false
+- name: src/resources/templates/recent.ftlh
+  visible: true
+  text: |-
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Latest</title>
+    </head>
+    <body>
+      <#list Codes as code>
+          <span id="load_date"
+                style="color: rgb(187,62,207);">
+              ${code.date}
+          </span>
+            <div class="container" style="background: rgb(195,195,195);border-style: solid">
+                <pre>${code.code}</pre>
+            </div>
+      </#list>
+    </body>
+    </html>
+  learner_created: true
+- name: src/platform/controller.java
+  visible: true
+  text: |
+    package platform;
+
+    import com.google.gson.Gson;
+    import com.google.gson.JsonObject;
+    import com.google.gson.JsonParser;
+    import org.springframework.stereotype.Controller;
+    import org.springframework.web.bind.annotation.*;
+
+    import java.time.LocalDateTime;
+    import java.time.format.DateTimeFormatter;
+    import java.util.ArrayList;
+    import java.util.List;
+
+    import org.springframework.ui.Model;
+
+    //reminder: change from thymeleaf to freemarker?
+    @Controller
+    public class controller {
+        static List<Code> codeList = new ArrayList<>(); //stores code snippets in memory
+        static int i = 0;
+
+        @GetMapping(value = "/code/{i}", produces = "text/html")
+        public String getCode(@PathVariable int i, Model model){
+            model.addAttribute("code", codeList.get(i-1).getCode());
+            model.addAttribute("date", codeList.get(i-1).getDate()); //setTime ... nahh
+            return "code";
+        }
+
+        @GetMapping(value = "/api/code/{i}",produces = "application/json")
+        @ResponseBody
+        public Code getCodeJson(@PathVariable int i){
+            return codeList.get(i-1);
+        }
+
+        @GetMapping(value = "/code/new", produces = "text/html")//same
+        public String newCode(){
+            return "newCode";
+        }
+
+        @PostMapping(value = "/api/code/new", produces = "application/json")
+        @ResponseBody
+        public String newSnippet(@RequestBody String code){
+            i++;
+            codeList.add(new Code(parseJson(code), getTime())); //add Json to latest
+            return "{ \"id\" : \""+i+"\" }";
+        }
+
+        @GetMapping(value = "/code/latest", produces = "text/html")
+        public String latestHTML(Model model){
+            model.addAttribute("Codes", getRecentArr());
+            return "recent";
+        }
+
+        @GetMapping(value = "/api/code/latest", produces = "application/json")
+        @ResponseBody
+        public String latestJson(){
+            return recentArrToJson(); //assume the latest time is the time of upload & not the time of access
+        }
+
+        private String getTime(){
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+            LocalDateTime now = LocalDateTime.now();
+            String date = dtf.format(now);
+            return date;
+        }
+
+        private String parseJson(String Json){
+            JsonObject jObj = new JsonParser().parse(Json).getAsJsonObject();
+            return jObj.get("code").getAsString();
+        }
+
+        private String recentArrToJson(){
+            List<Code> newList = new ArrayList<>();
+
+            int j = 1; //only getting 10 of the latest
+            for(int i = 0; i < 10; i++){
+                if(j > codeList.size()) break;
+                newList.add(codeList.get(codeList.size()-j));
+                j++;
+            }
+
+            return new Gson().toJson(newList);
+        }
+
+        private List<Code> getRecentArr(){
+            List<Code> newList = new ArrayList<>();
+            int j = 1; //only getting 10 of the latest
+            for(int i = 0; i < 10; i++){
+                if(j > codeList.size()) break;
+                newList.add(codeList.get(codeList.size()-j));
+                j++;
+            }
+            return newList;
+        }
+    }
+  learner_created: true
+- name: src/resources/templates/send.js
+  visible: true
+  text: |-
+    function send() {
+        let object = {
+            "code": document.getElementById("code_snippet").value
+        };
+
+        let json = JSON.stringify(object);
+
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", '/api/code/new', false)
+        xhr.setRequestHeader('Content-type', 'application/json; charset=utf-8');
+        xhr.send(json);
+
+        if (xhr.status === 200) {
+            alert("Success!");
+        }
+    }
+  learner_created: true
+- name: src/resources/templates/code.html
+  visible: true
+  text: |-
+    <!DOCTYPE html>
+    <html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Code</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    </head>
+    <body>
+        <span id="load_date"
+              style="color: rgb(187,62,207);"
+              th:text="${date}"/>
+        <div class="container" style="background: rgb(195,195,195);border-style: solid";>
+            <pre id="code_snippet" th:text="${code}"/>
+        </div>
+    </body>
+    </html>
+  learner_created: true
+- name: src/platform/Code.java
+  visible: true
+  text: |
+    package platform;
+
+    import lombok.AllArgsConstructor;
+    import lombok.Getter;
+    import lombok.Setter;
+
+    //not using lombok cause of test
+    public class Code {
+        private String code;
+        private String date;
+        public Code(String code, String date){
+            this.code = code;
+            this.date = date;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public void setDate(String date) {
+            this.date = date;
+        }
+    }
+  learner_created: true
+- name: src/resources/templates/newCode.html
+  visible: true
+  text: |-
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Create</title>
+    </head>
+    <body>
+        <label for="code_snippet"></label>
+        <textarea id="code_snippet"
+                  style="background: rgb(195,195,195);
+                  height: 230px;width: 850px">// write your code here</textarea>
+        <button id="send_snippet"
+                type="submit"
+                onclick="send()">
+            Submit
+        </button>
+    </body>
+    </html>
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/130/stages/695/implement#comment
 status: Unchecked
 record: -1

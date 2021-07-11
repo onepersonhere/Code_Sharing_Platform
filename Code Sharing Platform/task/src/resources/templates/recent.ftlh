@@ -11,7 +11,7 @@
           ${code.date}
       </span>
         <div class="container" style="background: rgb(195,195,195);border-style: solid">
-            <code>${code.code}</code>
+            <pre>${code.code}</pre>
         </div>
   </#list>
 </body>
