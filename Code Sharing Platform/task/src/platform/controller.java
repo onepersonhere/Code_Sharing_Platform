@@ -26,28 +26,29 @@ public class controller {
         return "code";
     }
 
-    @GetMapping(value = "/code/new", produces = "text/html")//same
-    public String newCode(){
-        return "newCode";
-    }
-
-    @GetMapping(value = "/code/latest", produces = "text/html")
-    public String latestHTML(){
-        return "WIP";
-    }
-
     @GetMapping(value = "/api/code/{i}",produces = "application/json")
     @ResponseBody
     public Code getCodeJson(@PathVariable int i){
         return codeList.get(i-1);
     }
 
+    @GetMapping(value = "/code/new", produces = "text/html")//same
+    public String newCode(){
+        return "newCode";
+    }
+
     @PostMapping(value = "/api/code/new", produces = "application/json")
     @ResponseBody
-    public String updateSnippet(@RequestBody String code){
+    public String newSnippet(@RequestBody String code){
         i++;
         codeList.add(new Code(parseJson(code), getTime())); //add Json to latest
         return "{ \"id\" : \""+i+"\" }";
+    }
+
+    @GetMapping(value = "/code/latest", produces = "text/html")
+    public String latestHTML(Model model){
+        model.addAttribute("Codes", getRecentArr());
+        return "recent";
     }
 
     @GetMapping(value = "/api/code/latest", produces = "application/json")
@@ -79,5 +80,16 @@ public class controller {
         }
 
         return new Gson().toJson(newList);
+    }
+
+    private List<Code> getRecentArr(){
+        List<Code> newList = new ArrayList<>();
+        int j = 1; //only getting 10 of the latest
+        for(int i = 0; i < 10; i++){
+            if(j > codeList.size()) break;
+            newList.add(codeList.get(codeList.size()-j));
+            j++;
+        }
+        return newList;
     }
 }
