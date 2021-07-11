@@ -40,9 +40,13 @@ public class controller {
 
     @GetMapping(value = "/api/code/{i}",produces = "application/json")
     @ResponseBody
-    public Code getCodeJson(@PathVariable int i){
+    public String getCodeJson(@PathVariable int i){
         Import();
-        return codeList.get(i-1);
+        Code returnCode = codeList.get(i-1);
+        JsonObject jObj = new JsonObject();
+        jObj.addProperty("code", returnCode.getCode());
+        jObj.addProperty("date", returnCode.getDate());
+        return new Gson().toJson(jObj);
     }
 
     @GetMapping(value = "/code/new", produces = "text/html")//same
@@ -92,12 +96,16 @@ public class controller {
     }
 
     private String recentArrToJson(){
-        List<Code> newList = new ArrayList<>();
+        List<JsonObject> newList = new ArrayList<>();
 
         int j = 1; //only getting 10 of the latest
         for(int i = 0; i < 10; i++){
             if(j > codeList.size()) break;
-            newList.add(codeList.get(codeList.size()-j));
+            Code code = codeList.get(codeList.size()-j);
+            JsonObject jObj = new JsonObject();
+            jObj.addProperty("code", code.getCode());
+            jObj.addProperty("date", code.getDate());
+            newList.add(jObj);
             j++;
         }
 
