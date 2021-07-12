@@ -3,50 +3,82 @@ package platform;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import javassist.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.ui.Model;
+import org.springframework.web.server.ResponseStatusException;
 
+//limit in num of views
+//limit in viewing time
+//snippet is deleted when limit is reached
+
+//implement time and views
+//decorate restricted_code.ftlh
 @Controller
 public class controller {
     @Autowired
     CodeService codeService;
 
     List<Code> codeList = new ArrayList<>(); //stores code snippets in memory
-    int i = 0;
 
     public void Import(){
         codeList = codeService.getAllCode();
-        try{i = codeList.get(codeList.size() - 1).getId();}
-        catch (IndexOutOfBoundsException e){
-            i = 0;
-        }
     }
 
     @GetMapping(value = "/code/{i}", produces = "text/html")
-    public String getCode(@PathVariable int i, Model model){
+    public String getCode(@PathVariable String i, Model model){
         Import();
-        model.addAttribute("code", codeList.get(i-1).getCode());
-        model.addAttribute("date", codeList.get(i-1).getDate()); //setTime ... nahh
+        try {
+            Code code = findCodeWithID(i);
+            model.addAttribute("code", code.getCode());
+            model.addAttribute("date", code.getDate());
+
+            if (code.isRestricted()) {
+                if(code.getOriginalTime() != 0) {
+                    code.setTime(findTimeDiff(code));
+                }
+                if(code.getOriginalViews() != 0) {
+                    code.setViews(code.getViews() - 1);
+                }
+                if(!code.isExpired()) {
+                    if(code.getOriginalTime() != 0) {
+                        model.addAttribute("time", code.getTime());
+                    }
+                    if(code.getOriginalViews() != 0) {
+                        model.addAttribute("views", code.getViews());
+                    }
+                    codeService.saveNewCode(code);
+                    return "restricted_code";
+                }else{
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+                }
+            }
+        }catch (NotFoundException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
         return "code";
     }
 
     @GetMapping(value = "/api/code/{i}",produces = "application/json")
     @ResponseBody
-    public String getCodeJson(@PathVariable int i){
+    public String getCodeJson(@PathVariable String i){
         Import();
-        Code returnCode = codeList.get(i-1);
-        JsonObject jObj = new JsonObject();
-        jObj.addProperty("code", returnCode.getCode());
-        jObj.addProperty("date", returnCode.getDate());
-        return new Gson().toJson(jObj);
+        Code returnCode;
+        try {returnCode = findCodeWithID(i);}
+        catch(NotFoundException e){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
+        return new Gson().toJson(getCodeAsJsonObj(returnCode));
     }
 
     @GetMapping(value = "/code/new", produces = "text/html")//same
@@ -57,16 +89,23 @@ public class controller {
 
     @PostMapping(value = "/api/code/new", produces = "application/json")
     @ResponseBody
-    public String newSnippet(@RequestBody String code){
+    public String postCode(@RequestBody String code){
         Import();
-        i++;
         Code cde = new Code();
-        cde.setCode(parseJson(code));
+        cde.setCode(parseJsonGetCode(code));
         cde.setDate(getTime());
-        cde.setId(i);
+
+        if(parseJsonGetTime(code) > 0 || parseJsonGetViews(code) > 0){
+            cde.setOriginalTime(parseJsonGetTime(code));
+            cde.setOriginalViews(parseJsonGetViews(code));
+            cde.setRestriction(true);
+        }
+
+        String id = randomUUID.getUUID();
+        cde.setId(id);
         codeList.add(cde);
         codeService.saveNewCode(cde);
-        return "{ \"id\" : \""+i+"\" }";
+        return "{ \"id\" : \""+id+"\" }";
     }
 
     @GetMapping(value = "/code/latest", produces = "text/html")
@@ -90,36 +129,103 @@ public class controller {
         return date;
     }
 
-    private String parseJson(String Json){
+    private String parseJsonGetCode(String Json){
         JsonObject jObj = new JsonParser().parse(Json).getAsJsonObject();
         return jObj.get("code").getAsString();
+    }
+
+    private int parseJsonGetTime(String Json){
+        JsonObject jObj = new JsonParser().parse(Json).getAsJsonObject();
+        return jObj.get("time").getAsInt();
+    }
+
+    private int parseJsonGetViews(String Json){
+        JsonObject jObj = new JsonParser().parse(Json).getAsJsonObject();
+        return jObj.get("views").getAsInt();
     }
 
     private String recentArrToJson(){
         List<JsonObject> newList = new ArrayList<>();
 
         int j = 1; //only getting 10 of the latest
-        for(int i = 0; i < 10; i++){
+        int i = 0;
+        while(true){
+            if(i >= 10) break;
             if(j > codeList.size()) break;
             Code code = codeList.get(codeList.size()-j);
-            JsonObject jObj = new JsonObject();
-            jObj.addProperty("code", code.getCode());
-            jObj.addProperty("date", code.getDate());
-            newList.add(jObj);
+            if(!code.isRestricted()) {
+                newList.add(getCodeAsJsonObj(code));
+                i++;
+            }
             j++;
         }
-
         return new Gson().toJson(newList);
     }
 
     private List<Code> getRecentArr(){
         List<Code> newList = new ArrayList<>();
         int j = 1; //only getting 10 of the latest
-        for(int i = 0; i < 10; i++){
+        int i = 0;
+        while(true){
+            if(i >= 10) break;
             if(j > codeList.size()) break;
-            newList.add(codeList.get(codeList.size()-j));
+            Code code = codeList.get(codeList.size()-j);
+            if(!code.isRestricted()) {
+                newList.add(code);
+                i++;
+            }
             j++;
         }
         return newList;
+    }
+
+    private JsonObject getCodeAsJsonObj(Code code){
+        JsonObject jObj = new JsonObject();
+        jObj.addProperty("code", code.getCode());
+        jObj.addProperty("date", code.getDate());
+        if (code.isRestricted()) {
+            if(code.getOriginalTime() != 0) {
+                code.setTime(findTimeDiff(code));
+            }
+            if(code.getOriginalViews() != 0) {
+                code.setViews(code.getViews() - 1);
+            }
+            if(!code.isExpired()) {
+                jObj.addProperty("time", code.getTime());
+                jObj.addProperty("views", code.getViews());
+                codeService.saveNewCode(code);
+            }else{
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            }
+        }else{
+            jObj.addProperty("time", code.getTime());
+            jObj.addProperty("views", code.getViews());
+        }
+        return jObj;
+    }
+
+
+    private Code findCodeWithID(String id) throws NotFoundException {
+        int a = 0;
+        for(; a < codeList.size(); a++){
+            if(codeList.get(a).getId().equals(id)){
+                break;
+            }
+        }
+        try {
+            if (!codeList.get(a).getId().equals(id)) {
+                throw new NotFoundException("");
+            }
+        }catch (IndexOutOfBoundsException e){
+            throw new NotFoundException("");
+        }
+        return codeList.get(a);
+    }
+
+    private long findTimeDiff(Code code){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        LocalDateTime creationDate = LocalDateTime.parse(code.getDate(), formatter);
+        LocalDateTime currentDate = LocalDateTime.now();
+        return code.getOriginalTime() - Duration.between(creationDate, currentDate).toSeconds();
     }
 }
